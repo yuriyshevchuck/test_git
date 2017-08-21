@@ -33,12 +33,6 @@ GPIO.output(37,False)
 altitude = caz.get_alt()
 azimuth = caz.get_az()
 
-# override altitude/azimuth if there is no anough light
-if !min_alowed_light_level: 
-	altitude = 45
-	azimuth = 110			
-# override altitude/azimuth if there is no anough light
-
 #read data from config
 min_alowed_light_level = splited_conf['min_alowed_light_level'][0] # equal 1 if light level i enough 
 wind_force_critical = splited_conf['wind_force_critical'][0] # equal to 0 if wind force is not higher then allowed
@@ -64,6 +58,11 @@ logging.info("min_alowed_light_level " + str(min_alowed_light_level));
 #track AZIMUTH/ZENIT
 #check if ZENIT and AZIMUTH tracking is allowed (condition key from config)
 if ( (altitude != (-1)) and (azimuth != (-1)) and (ta.get_tracker_azimuth_angle() != (-1)) and (ta.get_tracker_altitude_angle() != (-1)) and (not wind_force_critical) ) :
+	
+	if not min_alowed_light_level: # override altitude/azimuth if there is no anough light
+	   altitude = 45				# override altitude/azimuth if there is no anough light
+	   azimuth = 110				# override altitude/azimuth if there is no anough light
+    
 	tracker_altitude = ta.get_tracker_altitude_angle()
 	#SUN ALTITUDE IS LESS THEN ALT DELTA (isensitive zone)
 	logging.info(" HERE IT IS ALTITUDE ")
