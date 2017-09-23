@@ -60,8 +60,8 @@ logging.info("min_alowed_light_level " + str(min_alowed_light_level));
 if ( (altitude != (-1)) and (azimuth != (-1)) and (ta.get_tracker_azimuth_angle() != (-1)) and (ta.get_tracker_altitude_angle() != (-1)) and (not wind_force_critical) ) :
 	
 	if not min_alowed_light_level: # override altitude/azimuth if there is no anough light
-	   altitude = 45				# override altitude/azimuth if there is no anough light
-	   azimuth = 110				# override altitude/azimuth if there is no anough light
+	   altitude = 85				# override altitude/azimuth if there is no anough light
+	   azimuth = -10				# override altitude/azimuth if there is no anough light
     
 	tracker_altitude = ta.get_tracker_altitude_angle()
 	#SUN ALTITUDE IS LESS THEN ALT DELTA (isensitive zone)
@@ -111,19 +111,19 @@ if ( (altitude != (-1)) and (azimuth != (-1)) and (ta.get_tracker_azimuth_angle(
 	logging.info(" (tracker_azimuth - shift_az) = " + str((tracker_azimuth - shift_az)));
 	logging.info(" (azimuth) = " + str(azimuth));
 	#AZIMUTH PLUS
-	if ((tracker_azimuth - shift_az) < 200) and ((tracker_azimuth - shift_az) < azimuth) : # 200 is west end_switch limit
+	if ((tracker_azimuth - shift_az) < 195) and ((tracker_azimuth - shift_az) < azimuth) and (azimuth != (-10)) : # 195 is west end_switch limit / if -10 skip tracking due to small light level
 		GPIO.output(37,True)
 		while True:
 			time.sleep(0.5)
 			tracker_azimuth = ta.get_tracker_azimuth_angle()
 			logging.info(" Debug conditions (az plus) | (tracker_azimuth - shift_az)) = " + str((tracker_azimuth - shift_az)) + " | calculated azimuth = " + str(azimuth));
-			if ((tracker_azimuth - shift_az) >= 200) or ((tracker_azimuth - shift_az) >= azimuth):
+			if ((tracker_azimuth - shift_az) >= 195) or ((tracker_azimuth - shift_az) >= azimuth):
 				GPIO.output(37,False)
 				logging.info(" Azimuth position of the tracker was corrected to: " + str(azimuth))
 				break
 		#sys.exit()
 	#AZIMUTH MINUS (-1 is there to avoid false switching)
-	if (tracker_azimuth - shift_az > 20) and ((tracker_azimuth - shift_az - 1) > azimuth) : #20 is east end_switch limit
+	if (tracker_azimuth - shift_az > 20) and ((tracker_azimuth - shift_az - 1) > azimuth) and (azimuth != (-10)) : #20 is east end_switch limit / if -10 skip tracking due to small light level
 		GPIO.output(35,True)
 		while True:
 			time.sleep(0.5)
@@ -134,8 +134,6 @@ if ( (altitude != (-1)) and (azimuth != (-1)) and (ta.get_tracker_azimuth_angle(
 				logging.info(" Azimuth position of the tracker was corrected to: " + str(azimuth))
 				break
 		#sys.exit()
-	# altitude correction
-	#...
 elif altitude == (-1) :
 	# move zenit to the initial position
 	time.sleep(1)
@@ -143,20 +141,21 @@ elif altitude == (-1) :
 	logging.info(" Tracker alt " + str(tracker_altitude))
 	logging.info(" tracker_altitude - shift_alt " + str(tracker_altitude - shift_alt))
 	logging.info("HERE to initiall position")
-	if (tracker_altitude - shift_alt) > 6: # horizont is 3.3
+	if (tracker_altitude - shift_alt) > 13: # horizont is 3.3
 		GPIO.output(31,True)
 		while True:
 			time.sleep(1)
 			tracker_altitude = ta.get_tracker_altitude_angle()
+			logging.info(" (tracker_altitude - shift_alt)) = " + str((tracker_altitude - shift_alt)))
 			logging.info(" (90 - (tracker_altitude - shift_alt)) = " + str((90 - (tracker_altitude - shift_alt))))
-			if (tracker_altitude - shift_alt) <= 6: # horizont is 3.3
+			if (tracker_altitude - shift_alt) <= 13: # horizont is 3.3
 				GPIO.output(31,False)
-				logging.info(" Altitude was moved to the initial position " + str(tracker_altitude - splited_conf['shift_alt'][0]))
+				logging.info(" Altitude was moved to the initial position " + str(tracker_altitude))
 				break
 	# move azimuth to the initial position
 	time.sleep(1)
 	tracker_azimuth = ta.get_tracker_azimuth_angle()
-	logging.info(" tracker_azimuth " + str(tracker_altitude - shift_alt))
+	logging.info(" tracker_azimuth " + str(tracker_azimuth - shift_az))
 	logging.info(" tracker_azimuth - splited_conf['shift_az'][0] " + str(tracker_azimuth - splited_conf['shift_az'][0]))
 	if tracker_azimuth > splited_conf['shift_az'][0] + 20: # 24 limitet by endswitch
 		GPIO.output(35,True)
@@ -165,7 +164,7 @@ elif altitude == (-1) :
 			tracker_azimuth = ta.get_tracker_azimuth_angle()
 			logging.info(" (tracker_azimuth - shift_az) = " + str((tracker_azimuth - shift_az)))
 			if tracker_azimuth <= splited_conf['shift_az'][0] + 20: # 24 limitet by east endswitch
-				time.sleep(30) # sleep some time to allow tracker reach the endd switch (DUE TO DIFFERENCE BETWEN MAIN AND SLAVE TRACKERS)
+				#time.sleep(30) # sleep some time to allow tracker reach the endd switch (DUE TO DIFFERENCE BETWEN MAIN AND SLAVE TRACKERS)
 				GPIO.output(35,False)
 				logging.info(" Azimuth was moved to the initial position " + str(tracker_azimuth - splited_conf['shift_az'][0]))
 				break
@@ -176,13 +175,13 @@ elif wind_force_critical : # if wind is more then allowedleved
 	logging.info(" Tracker alt " + str(tracker_altitude))
 	logging.info(" tracker_altitude - shift_alt " + str(tracker_altitude - shift_alt))
 	logging.info("HERE wind_force_critical")
-	if (tracker_altitude - shift_alt) > 6: # horizont is 3.3
+	if (tracker_altitude - shift_alt) > 13: # horizont is 3.3
 		GPIO.output(31,True)
 		while True:
 			time.sleep(1)
 			tracker_altitude = ta.get_tracker_altitude_angle()
 			logging.info(" (90 - (tracker_altitude - shift_alt)) = " + str((90 - (tracker_altitude - shift_alt))))
-			if (tracker_altitude - shift_alt) <= 6: # horizont is 3.3
+			if (tracker_altitude - shift_alt) <= 13: # horizont is 3.3
 				GPIO.output(31,False)
 				logging.info(" Altitude was moved to the initial position " + str(tracker_altitude - splited_conf['shift_alt'][0]))
 				break

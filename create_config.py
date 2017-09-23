@@ -49,25 +49,27 @@ else:
     splited_conf['light_level'][i] = splited_conf['light_level'][i + 1]
     i += 1
 
-#check last 6 points of wind force if average value is bigger then min allow tracking
-for i in range(1, 7):
-  wind_force_sum += splited_conf['wind_force'][-i]
-if (wind_force_sum/6) >= 50:
-  wind_force_critical = 1
-#print(wind_force_critical)
-splited_conf['wind_force_critical'][0] = wind_force_critical
+#check if there are 10 points with value > then 40 then wind_force_critical = 1 if there are less then corresponding 5 point then wind_force_critical = 0 
+critical_points_counter = 0
+for i in range(1, 101):
+  if splited_conf['wind_force'][-i] > 40 :
+    critical_points_counter+=1
+    if critical_points_counter >= 10:
+      wind_force_critical = 1
+    elif critical_points_counter < 5:
+      wind_force_critical = 0
 
 #check last 100 points of light data if average value is bigger then min allow tracking
 for i in range(1, 101):
   light_level_sum += splited_conf['light_level'][-i]
-  print(splited_conf['light_level'][-i])
-if (light_level_sum/100) <= 9000:
+  #print(splited_conf['light_level'][-i])
+if (light_level_sum/100) <= 2000:
   min_alowed_light_level = 0
 splited_conf['min_alowed_light_level'][0] = min_alowed_light_level
 
-# if there is a point with 0 vakue check last one and if there is anough light allow tracking
+# if there is a point with 0 value check last one and if there is anough light allow tracking
 for i in range(1, 101):
-  if splited_conf['light_level'][-i] == 0 and splited_conf['light_level'][-1] > 9000:
+  if splited_conf['light_level'][-i] == 0 and splited_conf['light_level'][-1] > 2000:
     min_alowed_light_level = 1
     break
 
